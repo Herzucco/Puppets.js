@@ -4,7 +4,7 @@ var RenderShape =
 	settings : {
 
 	},
-	method : function(settings, renderShape, position2d, size2d)
+	method : function(renderShape, position2d, size2d)
 	{
 		var shape = renderShape.shape;
 		var color = renderShape.color;
