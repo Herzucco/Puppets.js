@@ -1,8 +1,8 @@
-var SystemManager =
+var Systems =
 {
 	COMPONENTS : [],
+	orderList : [],
 
-	orderList : ["Kinematic", "RenderShape"],
 	launchSystems : function()
 	{
 		var nbSystems = this.orderList.length;
@@ -11,11 +11,11 @@ var SystemManager =
 		    for(var i = 0; i < nbSystems; i++)
 		    {
 		       var system = window[this.orderList[i]];
-		       this.define(element, system.components, system.method, system.settings); 
+		       this.callSystem(element, system.components, system.method, system.settings); 
 		    }
 		}
 	},
-	define : function(id, listOfComponents, method, settings) 
+	callSystem : function(id, listOfComponents, method, settings) 
 	{
 		var entity = Entities.list[id];
 		var components = this.COMPONENTS;
