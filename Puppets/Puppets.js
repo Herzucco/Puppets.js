@@ -69,25 +69,22 @@ Puppets = function (systemList)
 			for (var i = 0; i < model.components.length; i++)
 			{
 				var component = model.components[i];
-				var id = Puppets.Components.addComponent(component);
+				var id = Puppets.Components.addComponent(component, constructor[component]);
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
 			}
 			id = this.length;
 			this.list[id] = entity;
 			this.length++;
-			model.instructions(argument, constructor);
 
 			return this.list[id];
 		},
-		addComponent : function(entity, component, settings, method, undefined)
+		addComponent : function(entity, component, settings, undefined)
 		{
 			if(this.list[entity][component] === null || this.list[entity][component] === undefined)
 			{
-				var id = Puppets.Components.addComponent(component);
+				var id = Puppets.Components.addComponent(component, settings);
 				this.list[entity][component] = id;
-				if(settings !== null && method !== null)
-					method(Puppets.Components.list[component][id], settings);
 			}
 
 			return this.list[entity];
@@ -121,7 +118,7 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		addComponent : function(component)
+		addComponent : function(component, constructor)
 		{
 			if(this.list[component] === null || this.list[component] === undefined)
 			{
@@ -130,7 +127,11 @@ Puppets = function (systemList)
 			}
 
 			var id = this.length[component];
-			this.list[component][id] = JSON.parse(JSON.stringify(componentsModels[component]));
+			if(constructor === null || constructor === undefined)
+				this.list[component][id] = Function("datas", componentsModels[component])({});
+			else
+				this.list[component][id] = Function("datas", componentsModels[component])(constructor);
+
 			this.length[component]++;
 
 			return id;
