@@ -1,8 +1,6 @@
 var Kinematic = 
 {
 	components : ["position2d", "velocity2d"],
-	settings : {
-	},
 	method : function(position2d, velocity2d)
 	{
 		var newPosition = Vectors.add(position2d, velocity2d); 

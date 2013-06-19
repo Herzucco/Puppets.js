@@ -13,11 +13,11 @@ Puppets = function (systemList)
 			    for(var i = 0; i < nbSystems; i++)
 			    {
 			       var system = window[this.list[i]];
-			       this.callSystem(element, system.components, system.method, system.settings); 
+			       this.callSystem(element, system.components, system.method); 
 			    }
 			}
 		},
-		callSystem : function(id, listOfComponents, method, settings) 
+		callSystem : function(id, listOfComponents, method) 
 		{
 			var entity = Puppets.Entities.list[id];
 			var components = this.COMPONENTS;
@@ -32,6 +32,7 @@ Puppets = function (systemList)
 
 				components.push(Puppets.Components.list[component][entity[component]]);
 			}
+			components.push(entity);
 			method.apply(null, components);
 			this.COMPONENTS.length = 0;
 		}
@@ -66,9 +67,22 @@ Puppets = function (systemList)
 		{
 			var entity = {};
 			var argument = {};
-			for (var i = 0; i < model.components.length; i++)
+			var lengthComponents = model.components.length;
+			for (var i = 0; i < lengthComponents; i++)
 			{
-				var component = model.components[i];
+				if(typeof model.components[i] === "object")
+				{
+					var component = Object.keys(model.components[i])[0];
+					for (var o in model.components[i][component])
+					{
+						if(constructor[component][o] !== undefined && constructor[component][o] !== null)
+							model.components[i][component][o] = constructor[component][o];
+					}
+					constructor[component][o] = model.components[i][component][o];
+				}
+				else
+					var component = model.components[i];
+
 				var id = Puppets.Components.addComponent(component, constructor[component]);
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
