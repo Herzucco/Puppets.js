@@ -1,9 +1,6 @@
 var RenderShape = 
 {
 	components : ["renderShape", "position2d", "size2d"],
-	settings : {
-
-	},
 	method : function(renderShape, position2d, size2d)
 	{
 		var shape = renderShape.shape;

@@ -13,18 +13,18 @@ Puppets = function (systemList)
 			    for(var i = 0; i < nbSystems; i++)
 			    {
 			       var system = window[this.list[i]];
-			       this.callSystem(element, system.components, system.method, system.settings); 
+			       this.callSystem(element, system.components, system.method); 
 			    }
 			}
 		},
-		callSystem : function(id, listOfComponents, method, settings) 
+		callSystem : function(id, listOfComponents, method) 
 		{
 			var entity = Puppets.Entities.list[id];
 			var components = this.COMPONENTS;
 			for(var i = 0; i < listOfComponents.length; i++)
 			{
 				var component = listOfComponents[i];
-				if(entity[component] === null || entity[component] === undefined) 
+				if(entity[component] === null || entity[component] === undefined || !Puppets.Components.list[component][entity[component]].enabled) 
 				{
 					this.COMPONENTS.length = 0;
 					return;
@@ -32,6 +32,7 @@ Puppets = function (systemList)
 
 				components.push(Puppets.Components.list[component][entity[component]]);
 			}
+			components.push(entity);
 			method.apply(null, components);
 			this.COMPONENTS.length = 0;
 		}
@@ -62,32 +63,42 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		createEntity : function(model, constructor, undefined)
+		createEntity : function(model, constructor, enabled, undefined)
 		{
 			var entity = {};
 			var argument = {};
-			for (var i = 0; i < model.components.length; i++)
+			var lengthComponents = model.components.length;
+			for (var i = 0; i < lengthComponents; i++)
 			{
-				var component = model.components[i];
-				var id = Puppets.Components.addComponent(component);
+				if(typeof model.components[i] === "object")
+				{
+					var component = Object.keys(model.components[i])[0];
+					for (var o in model.components[i][component])
+					{
+						if(constructor[component][o] !== undefined && constructor[component][o] !== null)
+							model.components[i][component][o] = constructor[component][o];
+					}
+					constructor[component][o] = model.components[i][component][o];
+				}
+				else
+					var component = model.components[i];
+
+				var id = Puppets.Components.addComponent(component, constructor[component], enabled);
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
 			}
 			id = this.length;
 			this.list[id] = entity;
 			this.length++;
-			model.instructions(argument, constructor);
 
 			return this.list[id];
 		},
-		addComponent : function(entity, component, settings, method, undefined)
+		addComponent : function(entity, component, settings, enabled, undefined)
 		{
 			if(this.list[entity][component] === null || this.list[entity][component] === undefined)
 			{
-				var id = Puppets.Components.addComponent(component);
+				var id = Puppets.Components.addComponent(component, settings, enabled);
 				this.list[entity][component] = id;
-				if(settings !== null && method !== null)
-					method(Puppets.Components.list[component][id], settings);
 			}
 
 			return this.list[entity];
@@ -121,7 +132,7 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		addComponent : function(component)
+		addComponent : function(component, constructor, enabled)
 		{
 			if(this.list[component] === null || this.list[component] === undefined)
 			{
@@ -130,7 +141,16 @@ Puppets = function (systemList)
 			}
 
 			var id = this.length[component];
-			this.list[component][id] = JSON.parse(JSON.stringify(componentsModels[component]));
+			if(constructor === null || constructor === undefined)
+				this.list[component][id] = Function("datas", componentsModels[component])({});
+			else
+				this.list[component][id] = Function("datas", componentsModels[component])(constructor);
+
+			if(enabled !== undefined)
+				this.list[component][id].enabled = enabled;
+			else
+				this.list[component][id].enabled = true;
+
 			this.length[component]++;
 
 			return id;
