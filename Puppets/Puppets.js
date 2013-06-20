@@ -24,7 +24,7 @@ Puppets = function (systemList)
 			for(var i = 0; i < listOfComponents.length; i++)
 			{
 				var component = listOfComponents[i];
-				if(entity[component] === null || entity[component] === undefined) 
+				if(entity[component] === null || entity[component] === undefined || !Puppets.Components.list[component][entity[component]].enabled) 
 				{
 					this.COMPONENTS.length = 0;
 					return;
@@ -63,7 +63,7 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		createEntity : function(model, constructor, undefined)
+		createEntity : function(model, constructor, enabled, undefined)
 		{
 			var entity = {};
 			var argument = {};
@@ -83,7 +83,7 @@ Puppets = function (systemList)
 				else
 					var component = model.components[i];
 
-				var id = Puppets.Components.addComponent(component, constructor[component]);
+				var id = Puppets.Components.addComponent(component, constructor[component], enabled);
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
 			}
@@ -93,11 +93,11 @@ Puppets = function (systemList)
 
 			return this.list[id];
 		},
-		addComponent : function(entity, component, settings, undefined)
+		addComponent : function(entity, component, settings, enabled, undefined)
 		{
 			if(this.list[entity][component] === null || this.list[entity][component] === undefined)
 			{
-				var id = Puppets.Components.addComponent(component, settings);
+				var id = Puppets.Components.addComponent(component, settings, enabled);
 				this.list[entity][component] = id;
 			}
 
@@ -132,7 +132,7 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		addComponent : function(component, constructor)
+		addComponent : function(component, constructor, enabled)
 		{
 			if(this.list[component] === null || this.list[component] === undefined)
 			{
@@ -145,6 +145,11 @@ Puppets = function (systemList)
 				this.list[component][id] = Function("datas", componentsModels[component])({});
 			else
 				this.list[component][id] = Function("datas", componentsModels[component])(constructor);
+
+			if(enabled !== undefined)
+				this.list[component][id].enabled = enabled;
+			else
+				this.list[component][id].enabled = true;
 
 			this.length[component]++;
 
