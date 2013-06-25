@@ -103,7 +103,7 @@ Puppets = function (systemList)
 
 			return this.list[entity];
 		},
-		removeComponent : function(entity, component, settings, method, undefined)
+		removeComponent : function(entity, component, undefined)
 		{
 			if(this.list[entity][component] !== null && this.list[entity][component] !== undefined)
 			{
@@ -113,6 +113,30 @@ Puppets = function (systemList)
 			}
 
 			return this.list[entity];
+		},
+		remove : function(entity)
+		{
+			if(entity.length !== null && entity.length !== undefined)
+			{
+				var nb = entity.length;
+				for(var puppy = 0; puppy < nb; puppy++)
+				{
+					var e = entity[puppy];
+					if(this.list[e] !== null && this.list[e] !== undefined)
+					{
+						delete this.list[e];
+					}
+				}
+			}
+			else
+			{
+				if(this.list[entity] !== null && this.list[entity] !== undefined)
+				{
+					delete this.list[entity];
+				}	
+			}
+			
+			return this.list;
 		}
 	}
 
