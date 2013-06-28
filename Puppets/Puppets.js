@@ -1,5 +1,6 @@
 Puppets = function (systemList)
 {
+	this.ARRAY = [];
 	this.Systems =
 	{
 		COMPONENTS : [],
@@ -103,7 +104,7 @@ Puppets = function (systemList)
 
 			return this.list[entity];
 		},
-		removeComponent : function(entity, component, settings, method, undefined)
+		removeComponent : function(entity, component, undefined)
 		{
 			if(this.list[entity][component] !== null && this.list[entity][component] !== undefined)
 			{
@@ -113,6 +114,61 @@ Puppets = function (systemList)
 			}
 
 			return this.list[entity];
+		},
+		remove : function(entity)
+		{
+			if(typeof entity == "string")
+				entity = entity.split('.');
+
+			if(Array.isArray(entity))
+			{
+				var nb = entity.length;
+				for(var puppy = 0; puppy < nb; puppy++)
+				{
+					var e = entity[puppy];
+					if(this.list[e] !== null && this.list[e] !== undefined)
+						delete this.list[e];
+				}
+				return true;
+			}
+			else
+			{
+				if(this.list[entity] !== null && this.list[entity] !== undefined)
+					return delete this.list[entity];
+			}
+			
+			return false;
+		},
+		find : function(clue)
+		{
+			clue = this._analyseString(clue);
+			var list = this.list;
+			var results = [];
+			if(typeof clue == "object")
+			{
+				for(var puppy in list)
+				{
+					if(list[puppy].hasOwnProperty(clue["clue"]) && Function("object", clue["compare"])(Puppets.Components.list[clue["clue"]][list[puppy][clue["clue"]]]))
+						results.push(puppy);	
+				}	
+			}
+			else
+				for(var puppy in list)
+				{
+					if(list[puppy].hasOwnProperty(clue))
+						results.push(puppy);
+				}
+
+			return results;
+		},
+
+		_analyseString : function(clue)
+		{
+			clue = clue.split(" ");
+			if(clue.length <= 1)
+				return clue[0];
+
+			return {clue : clue[0], compare : "console.log(object);if(object."+clue[1]+"){return true;}else{return false}"};
 		}
 	}
 
@@ -161,6 +217,10 @@ Puppets = function (systemList)
 			{
 				delete this.list[component][id];
 			}
+		},
+		find : function(clue)
+		{
+
 		}
 	}
 	window.Puppets = this;
@@ -170,4 +230,30 @@ Puppets = function (systemList)
 Puppets.prototype.run = function()
 {
 	this.Systems.launchSystems();
+}
+
+Puppets.prototype.find = function(clue, aplane)
+{
+	var results = [];
+
+	if(!Array.isArray(clue))
+		clue = [clue];
+
+	var nb = clue.length;
+	for(var puppy = 0; puppy < nb; puppy++)
+		results.push(this.Entities.find(clue[puppy]));
+
+	if(aplane)
+	{
+		var tmp = [];
+		for(var puppy = 0; puppy < results.length; puppy++)
+		{
+			var array = results[puppy];
+			for(var puppo = 0; puppo < array.length; puppo++)
+				tmp.push(array[puppo]);
+		}
+		results = tmp;
+	}
+
+	return results;
 }
