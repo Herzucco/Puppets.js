@@ -96,26 +96,42 @@ Puppets = function (systemList)
 		},
 		addComponent : function(entity, component, settings, enabled, undefined)
 		{
-			if(this.list[entity][component] === null || this.list[entity][component] === undefined)
+			if(!Array.isArray(entity))
+				entity = [entity];
+
+			for(var puppy = 0; puppy < entity.length; puppy++)
 			{
-				var id = Puppets.Components.addComponent(component, settings, enabled);
-				this.list[entity][component] = id;
+				if(!this.list[entity[puppy]].hasOwnProperty(component))
+				{
+					var id = Puppets.Components.addComponent(component, settings, enabled);
+					this.list[entity[puppy]][component] = id;
+				}
+				else
+					return false;
 			}
 
-			return this.list[entity];
+			return true;
 		},
 		removeComponent : function(entity, component, undefined)
 		{
-			if(this.list[entity][component] !== null && this.list[entity][component] !== undefined)
+			if(!Array.isArray(entity))
+				entity = [entity];
+
+			for(var puppy = 0; puppy < entity.length; puppy++)
 			{
-				var id = this.list[entity][component];
-				Puppets.Components.removeComponent(id, component);
-				delete this.list[entity][component];
+				if(this.list[entity[puppy]].hasOwnProperty(component))
+				{
+					var id = this.list[entity[puppy]][component];
+					Puppets.Components.removeComponent(id, component);
+					delete this.list[entity[puppy]][component];
+				}
+				else
+					return false;
 			}
 
-			return this.list[entity];
+			return true;
 		},
-		remove : function(entity)
+		removeEntity : function(entity)
 		{
 			if(typeof entity == "string")
 				entity = entity.split('.');
@@ -168,7 +184,30 @@ Puppets = function (systemList)
 			if(clue.length <= 1)
 				return clue[0];
 
-			return {clue : clue[0], compare : "console.log(object);if(object."+clue[1]+"){return true;}else{return false}"};
+			return {clue : clue[0], compare : "if(object."+clue[1]+"){return true;}else{return false}"};
+		},
+
+		getComponents : function(entity)
+		{
+			if(!Array.isArray(entity))
+				entity = [entity];
+
+			var array = [];
+			for(var puppy = 0; puppy < entity.length; puppy++)
+			{
+				var result = {};
+				var refComp = this.list[entity[puppy]];
+
+				if(refComp !== undefined && refComp !== null)
+				{
+					for(var puppo in refComp)
+						result[puppo] = Puppets.Components.list[puppo][refComp[puppo]];
+
+					array.push(result);
+				}
+			}
+
+			return array;
 		}
 	}
 
@@ -250,7 +289,10 @@ Puppets.prototype.find = function(clue, aplane)
 		{
 			var array = results[puppy];
 			for(var puppo = 0; puppo < array.length; puppo++)
-				tmp.push(array[puppo]);
+			{
+				if(tmp.indexOf(array[puppo]) < 0)
+					tmp.push(array[puppo]);
+			}
 		}
 		results = tmp;
 	}
