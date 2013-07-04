@@ -1,1 +1,1 @@
-Puppet is an entities oriented library.
+Puppets.js is an entities oriented library.
