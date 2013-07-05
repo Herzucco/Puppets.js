@@ -12,8 +12,8 @@ var contextInitialization = function()
 {
 	window.canvas = document.getElementById("canvas");
 	window.context = canvas.getContext("2d");
-	canvas.width = "800";
 	canvas.height = "600";
+	canvas.width = "800";
 }
 
 var update = function()
