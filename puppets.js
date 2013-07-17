@@ -1,21 +1,27 @@
-Puppets = function (systemList)
+var Puppets = function (config)
 {
 	this.ARRAY = [];
 	this.Systems =
 	{
 		COMPONENTS : [],
-		list : systemList,
+		list : {},
 
 		launchSystems : function()
 		{
 			var nbSystems = this.list.length;
-			for(var element in Puppets.Entities.list)
+			var nbCollections = Puppets.Entities.orderCollections.length;
+			for(var puppy = 0; puppy < nbCollections; puppy+=1)
 			{
-			    for(var i = 0; i < nbSystems; i++)
-			    {
-			       var system = window[this.list[i]];
-			       this.callSystem(element, system.components, system.method); 
-			    }
+				var collection = Puppets.Entities.orderCollections[puppy];
+				for(var puppo = 0; puppo < Puppets.Entities.collections[collection].length; puppo+=1)
+				{
+					var id = Puppets.Entities.collections[collection][puppo];
+				    for(var i = 0; i < nbSystems; i++)
+				    {
+				       var system = window[this.list[i]];
+				       this.callSystem(id, system.components, system.method); 
+				    }
+				}
 			}
 		},
 		callSystem : function(id, listOfComponents, method) 
@@ -29,7 +35,7 @@ Puppets = function (systemList)
 					var component = listOfComponents[i];
 					if(entity[component] === null || entity[component] === undefined ||
 					 Puppets.Components.list=== null || Puppets.Components.list === undefined ||
-					  !Puppets.Components.list[component][entity[component]].enabled) 
+					 !Puppets.Components.list[component][entity[component]].enabled) 
 					{
 						this.COMPONENTS.length = 0;
 						return;
@@ -50,14 +56,6 @@ Puppets = function (systemList)
 		collections : {},
 		length : 0,
 
-		hasComponent : function(entity, component, undefined)
-		{
-			if(entity[component] !== undefined && entity[component] !== null)
-				return true;
-
-			return false
-		},
-
 		count : function()
 		{
 			var count = 0;
@@ -69,7 +67,7 @@ Puppets = function (systemList)
 
 		   return count;
 		},
-		createEntity : function(model, constructor, enabled, undefined)
+		createEntity : function(model, constructor, collection)
 		{
 			var entity = {};
 			var argument = {};
@@ -89,12 +87,20 @@ Puppets = function (systemList)
 				else
 					var component = model.components[i];
 
-				var id = Puppets.Components.addComponent(this.length, component, constructor[component], enabled);
+				if(constructor[component] !== undefined && constructor[component] !== null)
+					var id = Puppets.Components.addComponent(this.length, component, constructor[component], constructor[component].enabled);
+				else
+					var id = Puppets.Components.addComponent(this.length, component, constructor[component]);
+
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
 			}
 			id = this.length;
 			this.list[id] = entity;
+			if(this.collections[collection] !== undefined && this.collections[collection] !== null)
+				this.collections[collection].push(id);
+			else
+				this.collections.world.push(id)
 			this.length++;
 
 			return this.length-1;
@@ -108,13 +114,12 @@ Puppets = function (systemList)
 			{
 				if(!this.list[entity[puppy]].hasOwnProperty(component))
 				{
-					var id = Puppets.Components.addComponent(component, settings, enabled);
+					var id = Puppets.Components.addComponent(entity, component, settings, enabled);
 					this.list[entity[puppy]][component] = id;
 				}
 				else
 					return false;
 			}
-
 			return true;
 		},
 		removeComponent : function(entity, component, undefined)
@@ -262,12 +267,32 @@ Puppets = function (systemList)
 				delete this.list[component][id];
 			}
 		},
-		find : function(clue)
-		{
-
-		}
 	}
-	window.Puppets = this;
+	var computeSystems = function(self, list)
+	{
+		console.log(self)
+		self.Systems.list = list;
+	}
+	var computeCollections = function(self, list)
+	{
+		self.Entities.orderCollections = list;
+		for(var puppy = 0; puppy < list.length; puppy+=1)
+			self.Entities.collections[list[puppy]] = [];
+
+		if(list.indexOf("world") < 0)
+		{
+			self.Entities.collections["world"] = [];
+			self.Entities.orderCollections.push("world");
+		}
+	} 
+	console.log(this)
+	var init = function(self)
+	{
+		console.log(self)
+		window.Puppets = self;
+		computeSystems(self, config.systemList);
+		computeCollections(self, config.collectionList);
+	}(this);
 	return this;
 }
 
@@ -304,3 +329,5 @@ Puppets.prototype.find = function(clue, aplane)
 
 	return results;
 }
+
+Puppets.pro
