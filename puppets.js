@@ -208,6 +208,32 @@ var Puppets = function (config)
 				}
 			}
 		},
+		copy : function(entity, number, collection)
+		{
+			entity = arrayzation(entity);
+			var nb = entity.length;
+
+			if(typeof puppo !== "number")
+			{
+				collection = number;
+				number = 1
+			}
+			else if(collection === undefined || typeof collection !== "string")
+				collection = "world";
+
+			for(var puppy = 0; puppy < nb; puppy++)
+			{
+				var copy = entity[puppy];
+				if(this.list[copy] !== undefined && this.list[copy] !== null)
+				{
+					for(var puppo = 0; puppo < number; puppo++)
+					{
+						this.list[this.list.length] = this.list[copy];
+						
+					}
+				}
+			}
+		},
 		find : function(clue)
 		{
 			clue = this._analyseString(clue);
@@ -310,6 +336,11 @@ var Puppets = function (config)
 				delete this.list[component][id];
 			}
 		},
+	}
+	var arrayzation = function(value)
+	{
+		if(!Array.isArray(value))
+				return [value];
 	}
 	var computeSystems = function(self, list)
 	{
