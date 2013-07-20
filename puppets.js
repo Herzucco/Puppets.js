@@ -185,6 +185,29 @@ var Puppets = function (config)
 			
 			return false;
 		},
+		switchCollection : function(entity, collection)
+		{
+			if(!Array.isArray(entity))
+				entity = [entity];
+
+			for(var puppy = 0; puppy < entity.length; puppy++)
+			{
+				if(typeof entity[puppy] == "number")
+					var moveEntity = ""+entity[puppy]+"";
+				else
+					var moveEntity = entity[puppy];
+
+				for(var puppo in this.collections)
+				{
+					if(this.collections[puppo].indexOf(moveEntity) > -1)
+					{
+						this.collections[puppo].splice(this.collections[puppo].indexOf(moveEntity), 1);
+						this.collections[collection].push(moveEntity);
+						break;
+					}
+				}
+			}
+		},
 		find : function(clue)
 		{
 			clue = this._analyseString(clue);
@@ -290,7 +313,6 @@ var Puppets = function (config)
 	}
 	var computeSystems = function(self, list)
 	{
-		console.log(self)
 		self.Systems.list = list;
 	}
 	var computeCollections = function(self, list)
@@ -307,7 +329,6 @@ var Puppets = function (config)
 	} 
 	var init = function(self)
 	{
-		console.log(self)
 		window.Puppets = self;
 		computeSystems(self, config.systemList);
 		computeCollections(self, config.collectionList);
@@ -356,4 +377,29 @@ Puppets.prototype.find = function(clue, aplane)
 	}
 
 	return results;
+}
+
+Puppets.prototype.removeEntity = function(entity)
+{
+	this.Entities.removeEntity(entity);
+}
+Puppets.prototype.removeComponent = function(entity, component)
+{
+	this.Entities.removeComponent(entity, component);
+}
+Puppets.prototype.addComponent = function(entity, component, settings, enabled, undefined)
+{
+	this.Entities.addComponent(entity, component, settings, enabled);
+}
+Puppets.prototype.createEntity = function(model, constructor, collection)
+{
+	this.Entities.createEntity(model, constructor, collection);
+}
+Puppets.prototype.getComponents = function(entity)
+{
+	this.Entities.getComponents(entity);
+}
+Puppets.prototype.switchCollection = function(entity, collection)
+{
+	this.Entities.switchCollection(entity, collection);
 }
