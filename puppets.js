@@ -213,10 +213,10 @@ var Puppets = function (config)
 			entity = arrayzation(entity);
 			var nb = entity.length;
 
-			if(typeof puppo !== "number")
+			if(typeof number !== "number")
 			{
 				collection = number;
-				number = 1
+				number = 1;
 			}
 			else if(collection === undefined || typeof collection !== "string")
 				collection = "world";
@@ -228,8 +228,14 @@ var Puppets = function (config)
 				{
 					for(var puppo = 0; puppo < number; puppo++)
 					{
-						this.list[this.list.length] = this.list[copy];
-						
+						var newCopy = JSON.parse(JSON.stringify(this.list[copy]));
+						for(var puppa in newCopy)
+						{
+							var constructor = Puppets.Components.list[puppa][newCopy[puppa]];
+							newCopy[puppa] = Puppets.Components.addComponent(copy, puppa, constructor);
+						}
+						this.list[this.length] = newCopy;
+						this.length++;
 					}
 				}
 			}
@@ -288,6 +294,7 @@ var Puppets = function (config)
 
 			return array;
 		}
+		merge : function(entity, )
 	}
 
 	this.Components =
@@ -433,4 +440,8 @@ Puppets.prototype.getComponents = function(entity)
 Puppets.prototype.switchCollection = function(entity, collection)
 {
 	this.Entities.switchCollection(entity, collection);
+}
+Puppets.prototype.copy = function(entity, number, collection)
+{
+	this.Entities.copy(entity, number, collection);
 }
