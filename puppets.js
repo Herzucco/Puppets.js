@@ -5,6 +5,7 @@ var Puppets = function (config)
 	{
 		COMPONENTS : [],
 		list : {},
+		runs : 0,
 
 		launchSystems : function()
 		{
@@ -13,16 +14,18 @@ var Puppets = function (config)
 			for(var puppy = 0; puppy < nbCollections; puppy+=1)
 			{
 				var collection = Puppets.Entities.orderCollections[puppy];
-				for(var puppo = 0; puppo < Puppets.Entities.collections[collection].length; puppo+=1)
+				for(var puppo in Puppets.Entities.collections[collection])
 				{
 					var id = Puppets.Entities.collections[collection][puppo];
 				    for(var i = 0; i < nbSystems; i++)
 				    {
 				       var system = window[this.list[i]];
-				       this.callSystem(id, system.components, system.method); 
+				       if(system.delay === undefined || system.delay === null || this.runs % system.delay == 0)
+				     	  this.callSystem(id, system.components, system.method); 
 				    }
 				}
 			}
+			this.runs++;
 		},
 		callSystem : function(id, listOfComponents, method) 
 		{
@@ -98,9 +101,9 @@ var Puppets = function (config)
 			id = this.length;
 			this.list[id] = entity;
 			if(this.collections[collection] !== undefined && this.collections[collection] !== null)
-				this.collections[collection].push(""+id+"");
+				this.collections[collection][id] = ""+id+"";
 			else
-				this.collections.world.push(""+id+"")
+				this.collections["world"][id] = ""+id+"";
 			this.length++;
 
 			return this.length-1;
@@ -146,67 +149,55 @@ var Puppets = function (config)
 			if(typeof entity == "string")
 				entity = entity.split('.');
 
-			if(Array.isArray(entity))
+			if(!Array.isArray(entity))
+				entity = [entity];
+
+			var nb = entity.length;
+			for(var puppy = 0; puppy < nb; puppy++)
 			{
-				var nb = entity.length;
-				for(var puppy = 0; puppy < nb; puppy++)
+				var e = entity[puppy];
+				if(this.list[e] !== null && this.list[e] !== undefined)
 				{
-					var e = entity[puppy];
-					if(this.list[e] !== null && this.list[e] !== undefined)
+					for(var puppo in this.collections)
 					{
-						for(var puppo in this.collections)
+						if(this.collections[puppo][e] !== null && this.collections[puppo][e] !== undefined)
 						{
-							if(this.collections[puppo].indexOf(e) > -1)
-							{
-								this.collections[puppo].splice(this.collections[puppo].indexOf(e), 1);
-								break;
-							}
+							delete this.collections[puppo][e];
+							break;
 						}
-						delete this.list[e];
+					}
+					delete this.list[e];
+				}
+			}
+		},
+		switchCollection : function(entity, collection)
+		{
+			if(this.collections[collections] !== null && this.collections[collections] !== undefined)
+			{
+				if(!Array.isArray(entity))
+				entity = [entity];
+
+				for(var puppy = 0; puppy < entity.length; puppy++)
+				{
+					if(typeof entity[puppy] == "number")
+						var moveEntity = ""+entity[puppy]+"";
+					else
+						var moveEntity = entity[puppy];
+
+					for(var puppo in this.collections)
+					{
+						if(this.collections[puppo].indexOf(moveEntity) > -1)
+						{
+							delete this.collections[puppo][moveEntity];
+							this.collections[collection][moveEntity] = moveEntity;
+							break;
+						}
 					}
 				}
 				return true;
 			}
-			else
-			{
-				if(this.list[entity] !== null && this.list[entity] !== undefined)
-				{
-					for(var puppo in this.collections)
-					{
-						if(this.collections[puppo].indexOf(e) > -1)
-						{
-							this.collections[puppo].splice(this.collections[puppo].indexOf(e), 1);
-							break;
-						}
-					}
-					return delete this.list[entity];
-				}
-			}
-			
+
 			return false;
-		},
-		switchCollection : function(entity, collection)
-		{
-			if(!Array.isArray(entity))
-				entity = [entity];
-
-			for(var puppy = 0; puppy < entity.length; puppy++)
-			{
-				if(typeof entity[puppy] == "number")
-					var moveEntity = ""+entity[puppy]+"";
-				else
-					var moveEntity = entity[puppy];
-
-				for(var puppo in this.collections)
-				{
-					if(this.collections[puppo].indexOf(moveEntity) > -1)
-					{
-						this.collections[puppo].splice(this.collections[puppo].indexOf(moveEntity), 1);
-						this.collections[collection].push(moveEntity);
-						break;
-					}
-				}
-			}
 		},
 		copy : function(entity, number, collection)
 		{
@@ -277,7 +268,7 @@ var Puppets = function (config)
 			if(!Array.isArray(entity))
 				entity = [entity];
 
-			var array = [];
+			var object = {};
 			for(var puppy = 0; puppy < entity.length; puppy++)
 			{
 				var result = {};
@@ -288,13 +279,37 @@ var Puppets = function (config)
 					for(var puppo in refComp)
 						result[puppo] = Puppets.Components.list[puppo][refComp[puppo]];
 
-					array.push(result);
+					object[puppy] = result;
 				}
 			}
 
-			return array;
+			return object;
+		},
+		merge : function(createNew, params)
+		{
+			if(arguments.length < 4)
+				return false;
+
+			if(params === undefined || params === null)
+				params = {};
+
+			var entitiesToMerge = [];
+			for(var puppy = 2; puppy < arguments.length; i++)
+			{
+				if(Array.isArray(arguments[puppy]))
+				{
+					for(var puppo = 0; puppo < arguments[puppy].length; puppo++)
+					{
+						if(typeof arguments[puppy][puppo] == "string" || typeof arguments[puppy][puppo] == "number")
+							entitiesToMerge.push(arguments[puppy][puppo]);
+					}
+				}
+				else if(typeof arguments[puppy] == "string" || typeof arguments[puppy] == "number")
+					entitiesToMerge.push(arguments[puppy]);
+			}
+			entitiesToMerge = this.getComponents(entitiesToMerge);
+
 		}
-		merge : function(entity, )
 	}
 
 	this.Components =
@@ -357,11 +372,11 @@ var Puppets = function (config)
 	{
 		self.Entities.orderCollections = list;
 		for(var puppy = 0; puppy < list.length; puppy+=1)
-			self.Entities.collections[list[puppy]] = [];
+			self.Entities.collections[list[puppy]] = {};
 
 		if(list.indexOf("world") < 0)
 		{
-			self.Entities.collections["world"] = [];
+			self.Entities.collections["world"] = {};
 			self.Entities.orderCollections.push("world");
 		}
 	} 
@@ -392,7 +407,7 @@ Puppets.prototype.find = function(clue, aplane)
 		if(clue[puppy].slice(0, 1) == ".")
 		{
 			results.push(this.Entities.collections[clue[puppy].slice(1)])
-			for(var puppo = 0; puppo < results[results.length-1].length; puppo++)
+			for(var puppo in results[results.length-1])
 				results[results.length-1][puppo] = results[results.length-1][puppo];
 		}
 		else
@@ -419,29 +434,29 @@ Puppets.prototype.find = function(clue, aplane)
 
 Puppets.prototype.removeEntity = function(entity)
 {
-	this.Entities.removeEntity(entity);
+	return this.Entities.removeEntity(entity);
 }
 Puppets.prototype.removeComponent = function(entity, component)
 {
-	this.Entities.removeComponent(entity, component);
+	return this.Entities.removeComponent(entity, component);
 }
 Puppets.prototype.addComponent = function(entity, component, settings, enabled, undefined)
 {
-	this.Entities.addComponent(entity, component, settings, enabled);
+	return this.Entities.addComponent(entity, component, settings, enabled);
 }
 Puppets.prototype.createEntity = function(model, constructor, collection)
 {
-	this.Entities.createEntity(model, constructor, collection);
+	return this.Entities.createEntity(model, constructor, collection);
 }
 Puppets.prototype.getComponents = function(entity)
 {
-	this.Entities.getComponents(entity);
+	return this.Entities.getComponents(entity);
 }
 Puppets.prototype.switchCollection = function(entity, collection)
 {
-	this.Entities.switchCollection(entity, collection);
+	return this.Entities.switchCollection(entity, collection);
 }
 Puppets.prototype.copy = function(entity, number, collection)
 {
-	this.Entities.copy(entity, number, collection);
+	return this.Entities.copy(entity, number, collection);
 }
