@@ -318,7 +318,7 @@ var Puppets = function (config)
 			var entitiesToMerge = [];
             var puppy, puppo;
             
-			for(puppy = 2; puppy < arguments.length; i++)
+			for(puppy = 2; puppy < arguments.length; puppy++)
 			{
 				if(Array.isArray(arguments[puppy]))
 				{
