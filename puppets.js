@@ -11,15 +11,18 @@ var Puppets = function (config)
 		{
 			var nbSystems = this.list.length;
 			var nbCollections = Puppets.Entities.orderCollections.length;
-			for(var puppy = 0; puppy < nbCollections; puppy+=1)
+            var puppy, puppo, i;
+            var system, id;
+            
+			for(puppy = 0; puppy < nbCollections; puppy+=1)
 			{
 				var collection = Puppets.Entities.orderCollections[puppy];
-				for(var puppo in Puppets.Entities.collections[collection])
+				for(puppo in Puppets.Entities.collections[collection])
 				{
-					var id = Puppets.Entities.collections[collection][puppo];
-				    for(var i = 0; i < nbSystems; i++)
+					id = Puppets.Entities.collections[collection][puppo];
+				    for(i = 0; i < nbSystems; i++)
 				    {
-				       var system = window[this.list[i]];
+				       system = window[this.list[i]];
 				       if(system.delay === undefined || system.delay === null || this.runs % system.delay == 0)
 				     	  this.callSystem(id, system.components, system.method); 
 				    }
@@ -31,11 +34,13 @@ var Puppets = function (config)
 		{
 			var entity = Puppets.Entities.list[id];
 			var components = this.COMPONENTS;
+            var i;
+            var component;
 			if(entity !== null && entity !== undefined)
 			{
-				for(var i = 0; i < listOfComponents.length; i++)
+				for(i = 0; i < listOfComponents.length; i++)
 				{
-					var component = listOfComponents[i];
+					component = listOfComponents[i];
 					if(entity[component] === null || entity[component] === undefined ||
 					 Puppets.Components.list=== null || Puppets.Components.list === undefined ||
 					 !Puppets.Components.list[component][entity[component]].enabled) 
@@ -75,12 +80,13 @@ var Puppets = function (config)
 			var entity = {};
 			var argument = {};
 			var lengthComponents = model.components.length;
-			for (var i = 0; i < lengthComponents; i++)
+            var i, o, id;
+			for (i = 0; i < lengthComponents; i++)
 			{
 				if(typeof model.components[i] === "object")
 				{
 					var component = Object.keys(model.components[i])[0];
-					for (var o in model.components[i][component])
+					for (o in model.components[i][component])
 					{
 						if(constructor[component][o] !== undefined && constructor[component][o] !== null)
 							model.components[i][component][o] = constructor[component][o];
@@ -91,9 +97,9 @@ var Puppets = function (config)
 					var component = model.components[i];
 
 				if(constructor[component] !== undefined && constructor[component] !== null)
-					var id = Puppets.Components.addComponent(this.length, component, constructor[component], constructor[component].enabled);
+					id = Puppets.Components.addComponent(this.length, component, constructor[component], constructor[component].enabled);
 				else
-					var id = Puppets.Components.addComponent(this.length, component, constructor[component]);
+					id = Puppets.Components.addComponent(this.length, component, constructor[component]);
 
 				entity[component] = id;
 				argument[component] = Puppets.Components.list[component][id];
@@ -112,12 +118,14 @@ var Puppets = function (config)
 		{
 			if(!Array.isArray(entity))
 				entity = [entity];
-
+            
+            var id;
+            
 			for(var puppy = 0; puppy < entity.length; puppy++)
 			{
 				if(!this.list[entity[puppy]].hasOwnProperty(component))
 				{
-					var id = Puppets.Components.addComponent(entity, component, settings, enabled);
+					id = Puppets.Components.addComponent(entity, component, settings, enabled);
 					this.list[entity[puppy]][component] = id;
 				}
 				else
@@ -129,12 +137,14 @@ var Puppets = function (config)
 		{
 			if(!Array.isArray(entity))
 				entity = [entity];
-
+            
+            var id;
+            
 			for(var puppy = 0; puppy < entity.length; puppy++)
 			{
 				if(this.list[entity[puppy]].hasOwnProperty(component))
 				{
-					var id = this.list[entity[puppy]][component];
+					id = this.list[entity[puppy]][component];
 					Puppets.Components.removeComponent(id, component);
 					delete this.list[entity[puppy]][component];
 				}
@@ -153,12 +163,15 @@ var Puppets = function (config)
 				entity = [entity];
 
 			var nb = entity.length;
-			for(var puppy = 0; puppy < nb; puppy++)
+            var puppy;
+            var e, puppo;
+            
+			for(puppy = 0; puppy < nb; puppy++)
 			{
-				var e = entity[puppy];
+				e = entity[puppy];
 				if(this.list[e] !== null && this.list[e] !== undefined)
 				{
-					for(var puppo in this.collections)
+					for(puppo in this.collections)
 					{
 						if(this.collections[puppo][e] !== null && this.collections[puppo][e] !== undefined)
 						{
@@ -176,15 +189,18 @@ var Puppets = function (config)
 			{
 				if(!Array.isArray(entity))
 				entity = [entity];
-
-				for(var puppy = 0; puppy < entity.length; puppy++)
+                
+                var puppy;
+                var moveEntity, puppo;
+                
+				for(puppy = 0; puppy < entity.length; puppy++)
 				{
 					if(typeof entity[puppy] == "number")
-						var moveEntity = ""+entity[puppy]+"";
+						moveEntity = ""+entity[puppy]+"";
 					else
-						var moveEntity = entity[puppy];
+						moveEntity = entity[puppy];
 
-					for(var puppo in this.collections)
+					for(puppo in this.collections)
 					{
 						if(this.collections[puppo].indexOf(moveEntity) > -1)
 						{
@@ -215,14 +231,17 @@ var Puppets = function (config)
 			for(var puppy = 0; puppy < nb; puppy++)
 			{
 				var copy = entity[puppy];
+                var puppo, puppa;
+                var newCopy, constructor;
+                
 				if(this.list[copy] !== undefined && this.list[copy] !== null)
 				{
-					for(var puppo = 0; puppo < number; puppo++)
+					for(puppo = 0; puppo < number; puppo++)
 					{
-						var newCopy = JSON.parse(JSON.stringify(this.list[copy]));
-						for(var puppa in newCopy)
+						newCopy = JSON.parse(JSON.stringify(this.list[copy]));
+						for(puppa in newCopy)
 						{
-							var constructor = Puppets.Components.list[puppa][newCopy[puppa]];
+							constructor = Puppets.Components.list[puppa][newCopy[puppa]];
 							newCopy[puppa] = Puppets.Components.addComponent(copy, puppa, constructor);
 						}
 						this.list[this.length] = newCopy;
@@ -269,14 +288,17 @@ var Puppets = function (config)
 				entity = [entity];
 
 			var object = {};
-			for(var puppy = 0; puppy < entity.length; puppy++)
+            var puppy, puppo;
+            var refComp, result;
+            
+			for(puppy = 0; puppy < entity.length; puppy++)
 			{
-				var result = {};
-				var refComp = this.list[entity[puppy]];
+				result = {};
+				refComp = this.list[entity[puppy]];
 
 				if(refComp !== undefined && refComp !== null)
 				{
-					for(var puppo in refComp)
+					for(puppo in refComp)
 						result[puppo] = Puppets.Components.list[puppo][refComp[puppo]];
 
 					object[puppy] = result;
@@ -294,11 +316,13 @@ var Puppets = function (config)
 				params = {};
 
 			var entitiesToMerge = [];
-			for(var puppy = 2; puppy < arguments.length; i++)
+            var puppy, puppo;
+            
+			for(puppy = 2; puppy < arguments.length; i++)
 			{
 				if(Array.isArray(arguments[puppy]))
 				{
-					for(var puppo = 0; puppo < arguments[puppy].length; puppo++)
+					for(puppo = 0; puppo < arguments[puppy].length; puppo++)
 					{
 						if(typeof arguments[puppy][puppo] == "string" || typeof arguments[puppy][puppo] == "number")
 							entitiesToMerge.push(arguments[puppy][puppo]);
@@ -402,12 +426,14 @@ Puppets.prototype.find = function(clue, aplane)
 		clue = [clue];
 
 	var nb = clue.length;
-	for(var puppy = 0; puppy < nb; puppy++)
+    var puppy, puppo;
+    
+	for(puppy = 0; puppy < nb; puppy++)
 	{
 		if(clue[puppy].slice(0, 1) == ".")
 		{
 			results.push(this.Entities.collections[clue[puppy].slice(1)])
-			for(var puppo in results[results.length-1])
+			for(puppo in results[results.length-1])
 				results[results.length-1][puppo] = results[results.length-1][puppo];
 		}
 		else
@@ -417,10 +443,12 @@ Puppets.prototype.find = function(clue, aplane)
 	if(aplane)
 	{
 		var tmp = [];
-		for(var puppy = 0; puppy < results.length; puppy++)
+        var array;
+        
+		for(puppy = 0; puppy < results.length; puppy++)
 		{
-			var array = results[puppy];
-			for(var puppo = 0; puppo < array.length; puppo++)
+			array = results[puppy];
+			for(puppo = 0; puppo < array.length; puppo++)
 			{
 				if(tmp.indexOf(array[puppo]) < 0)
 					tmp.push(array[puppo]);
