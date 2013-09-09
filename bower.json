@@ -1,6 +1,6 @@
 {
   "name": "Puppets.js",
-  "version": "0.1.2",
+  "version": "0.2",
   "main": "puppets.js",
   "ignore": [
   	"examples"

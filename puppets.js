@@ -9,7 +9,6 @@ var Puppets = function (config)
 
 		launchSystems : function()
 		{
-			var nbSystems = this.list.length;
 			var nbCollections = Puppets.Entities.orderCollections.length;
             var puppy, puppo, i;
             var system, id;
@@ -20,9 +19,9 @@ var Puppets = function (config)
 				for(puppo in Puppets.Entities.collections[collection])
 				{
 					id = Puppets.Entities.collections[collection][puppo];
-				    for(i = 0; i < nbSystems; i++)
+				    for(var i in this.list)
 				    {
-				       system = window[this.list[i]];
+				       system = this.list[i];
 				       if(system.delay === undefined || system.delay === null || this.runs % system.delay == 0)
 				     	  this.callSystem(id, system.components, system.method); 
 				    }
@@ -55,11 +54,19 @@ var Puppets = function (config)
 				method.apply(null, components);
 				this.COMPONENTS.length = 0;
 			}
+		},
+		load : function(name, system)
+		{
+			if(this.list[name] !== undefined && this.list[name] !== null)
+				console.warn("Name "+name+" overrided by system "+system);
+
+			this.list[name] = Function(system)();
 		}
 	}
 
 	this.Entities =
 	{
+		models : {},
 		list : {},
 		collections : {},
 		length : 0,
@@ -77,6 +84,12 @@ var Puppets = function (config)
 		},
 		createEntity : function(model, constructor, collection)
 		{
+			if(this.models[model] === undefined)
+			{
+				console.warn("Model "+model+" doesn't exist in Puppet, you have to load it");
+				return false;
+			}
+			model = this.models[model];
 			var entity = {};
 			var argument = {};
 			var lengthComponents = model.components.length;
@@ -333,11 +346,19 @@ var Puppets = function (config)
 			}
 			entitiesToMerge = this.getComponents(entitiesToMerge);
 
-		}
+		},
+		load : function(name, entity)
+		{
+			if(this.models[name] !== undefined && this.models[name] !== null)
+				console.warn("Name "+name+" overrided by entity "+entity);
+
+			this.models[name] = entity;
+		},
 	}
 
 	this.Components =
 	{
+		models : {},
 		list : {},
 		length : {},
 
@@ -361,10 +382,7 @@ var Puppets = function (config)
 			}
 
 			var id = this.length[component];
-			if(constructor === null || constructor === undefined)
-				this.list[component][id] = Function("datas", "entity", componentsModels[component])({}, entity);
-			else
-				this.list[component][id] = Function("datas", "entity", componentsModels[component])(constructor, entity);
+			this.list[component][id] = this.models[component](constructor || {}, entity);
 
 			if(enabled !== undefined)
 				this.list[component][id].enabled = enabled;
@@ -382,6 +400,13 @@ var Puppets = function (config)
 				delete this.list[component][id];
 			}
 		},
+		load : function(name, component)
+		{
+			if(this.models[name] !== undefined && this.models[name] !== null)
+				console.warn("Name "+name+" overrided by component "+component);
+
+			this.models[name] = Function("datas", "entity", component);
+		},
 	}
 	var arrayzation = function(value)
 	{
@@ -390,7 +415,24 @@ var Puppets = function (config)
 	}
 	var computeSystems = function(self, list)
 	{
-		self.Systems.list = list;
+		for(var key in list)
+		{
+			self.Systems.list[key] = list[key];
+		}
+	}
+	var computeComponents = function(self, list)
+	{
+		for(var key in list)
+		{
+			self.Components.models[key] = Function("datas", "entity", list[key]);
+		}
+	}
+	var computeEntities = function(self, list)
+	{
+		for(var key in list)
+		{
+			self.Entities.models[key] = list[key];
+		}
 	}
 	var computeCollections = function(self, list)
 	{
@@ -408,6 +450,7 @@ var Puppets = function (config)
 	{
 		window.Puppets = self;
 		computeSystems(self, config.systemList);
+		computeComponents(self, config.componentList)
 		computeCollections(self, config.collectionList);
 	}(this);
 	return this;
@@ -421,7 +464,8 @@ Puppets.prototype.run = function()
 Puppets.prototype.find = function(clue, aplane)
 {
 	var results = [];
-
+	if(aplane === undefined)
+		aplane = true;
 	if(!Array.isArray(clue))
 		clue = [clue];
 
@@ -487,4 +531,37 @@ Puppets.prototype.switchCollection = function(entity, collection)
 Puppets.prototype.copy = function(entity, number, collection)
 {
 	return this.Entities.copy(entity, number, collection);
+}
+Puppets.prototype.load = function(type, name, file, success, error)
+{
+	var request =new XMLHttpRequest();
+	request.open("GET", file, false);
+	request.send();
+	if(request.response === "")
+	{
+		if(typeof(error) === 'function')
+			error(request.response);
+
+		throw console.warn("An error occured loading "+type+" "+file);
+		return false;
+	}
+	if(typeof(success) === "function")
+		success(request.response);
+
+	switch(type)
+	{
+		case "entity" :
+			return this.Entities.load(name, JSON.parse(request.response));
+		break;
+		case "component" :
+			return this.Components.load(name, request.response);
+		break;
+		case "system" :
+			return this.Systems.load(name, request.response);
+		break;
+		default :
+			throw console.warn("Type "+type+" is incorrect, loading aborted");
+			return false;
+		break;
+	}
 }
