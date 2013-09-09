@@ -19,7 +19,7 @@ var Puppets = function (config)
 				for(puppo in Puppets.Entities.collections[collection])
 				{
 					id = Puppets.Entities.collections[collection][puppo];
-				    for(var i in this.list)
+				    for(i in this.list)
 				    {
 				       system = this.list[i];
 				       if(system.delay === undefined || system.delay === null || this.runs % system.delay == 0)
