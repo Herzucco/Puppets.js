@@ -55,12 +55,14 @@ var Puppets = function (config)
 				this.COMPONENTS.length = 0;
 			}
 		},
-		load : function(name, system)
+		load : function(name, method, data)
 		{
 			if(this.list[name] !== undefined && this.list[name] !== null)
-				console.warn("Name "+name+" overrided by system "+system);
+				console.warn("Name "+name+" overrided by system "+method);
+			if(data === undefined)
+				throw console.error("data argument can not be undefined");
 
-			this.list[name] = Function(system)();
+			this.list[name] = { components : data.components, method : method , delay : data.delay, data : data};
 		}
 	}
 
@@ -69,6 +71,7 @@ var Puppets = function (config)
 		models : {},
 		list : {},
 		collections : {},
+		orderCollections : [],
 		length : 0,
 
 		count : function()
@@ -86,7 +89,7 @@ var Puppets = function (config)
 		{
 			if(this.models[model] === undefined)
 			{
-				console.warn("Model "+model+" doesn't exist in Puppet, you have to load it");
+				console.warn("Entity "+model+" doesn't exist in Puppet, you have to load it");
 				return false;
 			}
 			model = this.models[model];
@@ -347,12 +350,12 @@ var Puppets = function (config)
 			entitiesToMerge = this.getComponents(entitiesToMerge);
 
 		},
-		load : function(name, entity)
+		load : function(name, constructor)
 		{
 			if(this.models[name] !== undefined && this.models[name] !== null)
-				console.warn("Name "+name+" overrided by entity "+entity);
+				console.warn("Name "+name+" overrided by entity "+constructor);
 
-			this.models[name] = entity;
+			this.models[name] = {components : constructor.components, data : constructor.data };
 		},
 	}
 
@@ -382,7 +385,7 @@ var Puppets = function (config)
 			}
 
 			var id = this.length[component];
-			this.list[component][id] = this.models[component](constructor || {}, entity);
+			this.list[component][id] = this.models[component].constructor(constructor || {}, entity);
 
 			if(enabled !== undefined)
 				this.list[component][id].enabled = enabled;
@@ -400,12 +403,12 @@ var Puppets = function (config)
 				delete this.list[component][id];
 			}
 		},
-		load : function(name, component)
+		load : function(name, constructor, data)
 		{
 			if(this.models[name] !== undefined && this.models[name] !== null)
-				console.warn("Name "+name+" overrided by component "+component);
+				console.warn("Name "+name+" overrided by component "+ constructor);
 
-			this.models[name] = Function("datas", "entity", component);
+			this.models[name] = {constructor : constructor, data : data };
 		},
 	}
 	var arrayzation = function(value)
@@ -413,45 +416,18 @@ var Puppets = function (config)
 		if(!Array.isArray(value))
 				return [value];
 	}
-	var computeSystems = function(self, list)
-	{
-		for(var key in list)
-		{
-			self.Systems.list[key] = list[key];
-		}
-	}
-	var computeComponents = function(self, list)
-	{
-		for(var key in list)
-		{
-			self.Components.models[key] = Function("datas", "entity", list[key]);
-		}
-	}
-	var computeEntities = function(self, list)
-	{
-		for(var key in list)
-		{
-			self.Entities.models[key] = list[key];
-		}
-	}
-	var computeCollections = function(self, list)
-	{
-		self.Entities.orderCollections = list;
-		for(var puppy = 0; puppy < list.length; puppy+=1)
-			self.Entities.collections[list[puppy]] = {};
 
-		if(list.indexOf("world") < 0)
+	var init = function(self)
+	{
+		window.Puppets = self;
+		if(typeof(config) === "string")
+			self.load(config);
+
+		if(self.Entities.orderCollections.indexOf("world") < 0)
 		{
 			self.Entities.collections["world"] = {};
 			self.Entities.orderCollections.push("world");
 		}
-	} 
-	var init = function(self)
-	{
-		window.Puppets = self;
-		computeSystems(self, config.systemList);
-		computeComponents(self, config.componentList)
-		computeCollections(self, config.collectionList);
 	}(this);
 	return this;
 }
@@ -532,7 +508,7 @@ Puppets.prototype.copy = function(entity, number, collection)
 {
 	return this.Entities.copy(entity, number, collection);
 }
-Puppets.prototype.load = function(type, name, file, success, error)
+Puppets.prototype.load = function(file, success, error)
 {
 	var request =new XMLHttpRequest();
 	request.open("GET", file, false);
@@ -542,26 +518,54 @@ Puppets.prototype.load = function(type, name, file, success, error)
 		if(typeof(error) === 'function')
 			error(request.response);
 
-		throw console.warn("An error occured loading "+type+" "+file);
+		throw console.warn("An error occured loading "+file);
 		return false;
 	}
 	if(typeof(success) === "function")
 		success(request.response);
 
-	switch(type)
+	var module = document.createElement('script');
+	module.innerHTML = request.response;
+	document.body.appendChild(module);
+	document.body.removeChild(module);
+}
+Puppets.prototype.entity = function(name, data){
+	return this.Entities.load(name, data);
+}
+Puppets.prototype.component = function(name, method, data){
+	return this.Components.load(name, method, data);
+}
+Puppets.prototype.system = function(name, method, data){
+	return this.Systems.load(name, method, data);
+}
+Puppets.prototype.collection = function(collection, position){
+	if(Array.isArray(collection))
 	{
-		case "entity" :
-			return this.Entities.load(name, JSON.parse(request.response));
-		break;
-		case "component" :
-			return this.Components.load(name, request.response);
-		break;
-		case "system" :
-			return this.Systems.load(name, request.response);
-		break;
-		default :
-			throw console.warn("Type "+type+" is incorrect, loading aborted");
-			return false;
-		break;
+		this.Entities.orderCollections = collection;
+		for(var puppy = 0; puppy < collection.length; puppy+=1)
+			this.Entities.collections[collection[puppy]] = {};
+
+		console.warn("Set new collection list : "+collection);
+		return true;
+	}
+	else if(typeof(collection) === "string")
+	{
+		if(typeof(position) !== "number")
+		{
+			this.Entities.orderCollections.push(collection);
+
+			if(this.Entities.collections[collection] !== undefined)
+				console.warn("Collection "+collection+" overrided");
+		}
+		else
+			this.Entities.orderCollections.splice(position, 0, collection);
+
+		this.Entities.collections[collection] = {};
+		return true;
+	}
+	else
+	{
+		console.warn("Can not set collection : "+collection);
+		return false;
 	}
 }
