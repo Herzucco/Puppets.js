@@ -4,6 +4,7 @@ var Puppets = function (config)
 	this.Systems =
 	{
 		COMPONENTS : [],
+		order : [],
 		list : {},
 		runs : 0,
 
@@ -12,6 +13,7 @@ var Puppets = function (config)
 			var nbCollections = Puppets.Entities.orderCollections.length;
             var puppy, puppo, i;
             var system, id;
+            var orderLength = this.order.length;
             
 			for(puppy = 0; puppy < nbCollections; puppy+=1)
 			{
@@ -19,10 +21,10 @@ var Puppets = function (config)
 				for(puppo in Puppets.Entities.collections[collection])
 				{
 					id = Puppets.Entities.collections[collection][puppo];
-				    for(i in this.list)
+				    for(i = 0; i < orderLength; i++)
 				    {
-				       system = this.list[i];
-				       if(system.delay === undefined || system.delay === null || this.runs % system.delay == 0)
+				       system = this.list[this.order[i]];
+				       if(system !== undefined && (system.delay === undefined || system.delay === null || this.runs % system.delay == 0))
 				     	  this.callSystem(id, system.components, system.method); 
 				    }
 				}
@@ -63,6 +65,13 @@ var Puppets = function (config)
 				throw console.error("data argument can not be undefined");
 
 			this.list[name] = { components : data.components, method : method , delay : data.delay, data : data};
+
+			if(typeof(data.position) === 'number')
+				this.order.splice(data.position, 0, name);
+			else
+				this.order.push(name);
+
+			return true;
 		}
 	}
 
@@ -102,6 +111,9 @@ var Puppets = function (config)
 				if(typeof model.components[i] === "object")
 				{
 					var component = Object.keys(model.components[i])[0];
+					if(typeof(constructor[component]) !== 'object')
+						constructor[component] = {};
+
 					for (o in model.components[i][component])
 					{
 						if(constructor[component][o] !== undefined && constructor[component][o] !== null)
@@ -356,6 +368,7 @@ var Puppets = function (config)
 				console.warn("Name "+name+" overrided by entity "+constructor);
 
 			this.models[name] = {components : constructor.components, data : constructor.data };
+			return true;
 		},
 	}
 
@@ -409,6 +422,7 @@ var Puppets = function (config)
 				console.warn("Name "+name+" overrided by component "+ constructor);
 
 			this.models[name] = {constructor : constructor, data : data };
+			return true;
 		},
 	}
 	var arrayzation = function(value)
@@ -568,4 +582,11 @@ Puppets.prototype.collection = function(collection, position){
 		console.warn("Can not set collection : "+collection);
 		return false;
 	}
+}
+Puppets.prototype.systemList = function(list)
+{
+	if(Array.isArray(list))
+		this.Systems.order = list
+
+	return this.Systems.order;
 }
