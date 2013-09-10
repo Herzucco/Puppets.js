@@ -1,1 +1,0 @@
-return {x : datas.x || 0, y : datas.y || 0};

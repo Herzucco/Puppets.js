@@ -62,9 +62,16 @@ var Puppets = function (config)
 			if(this.list[name] !== undefined && this.list[name] !== null)
 				console.warn("Name "+name+" overrided by system "+method);
 			if(data === undefined)
+			{
 				throw console.error("data argument can not be undefined");
+				return false;
+			}
 
 			this.list[name] = { components : data.components, method : method , delay : data.delay, data : data};
+
+			var indexSystem = this.order.indexOf(name);
+			if(indexSystem >= 0)
+				this.order.splice(indexSystem, 1);
 
 			if(typeof(data.position) === 'number')
 				this.order.splice(data.position, 0, name);
@@ -564,6 +571,11 @@ Puppets.prototype.collection = function(collection, position){
 	}
 	else if(typeof(collection) === "string")
 	{
+		var indexCollection = this.Entities.orderCollections.indexOf(collection);
+
+		if(indexCollection >= 0)
+			this.Entities.orderCollections.splice(indexCollection, 1);
+
 		if(typeof(position) !== "number")
 		{
 			this.Entities.orderCollections.push(collection);

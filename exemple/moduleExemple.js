@@ -51,5 +51,5 @@
 			context.fillRect(position2d.x, position2d.y, size2d.width, size2d.height);
 		else if(shape == "circle")
 			context.arc(position2d.x,position2d.y,size2d.radius, 0, 2*Math.PI);
-	}, {components : ["renderShape", "position2d", "size2d"]});
+	}, {position : 0, components : ["renderShape", "position2d", "size2d"]});
 })();
