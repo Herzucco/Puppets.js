@@ -25,13 +25,13 @@ var Puppets = function (config)
 				    {
 				       system = this.list[this.order[i]];
 				       if(system !== undefined && (system.delay === undefined || system.delay === null || this.runs % system.delay == 0))
-				     	  this.callSystem(id, system.components, system.method); 
+				     	  this.callSystem(id, system.components, system.method, system.data); 
 				    }
 				}
 			}
 			this.runs++;
 		},
-		callSystem : function(id, listOfComponents, method) 
+		callSystem : function(id, listOfComponents, method, data) 
 		{
 			var entity = Puppets.Entities.list[id];
 			var components = this.COMPONENTS;
@@ -52,8 +52,8 @@ var Puppets = function (config)
 
 					components.push(Puppets.Components.list[component][entity[component]]);
 				}
-				components.push(entity);
-				method.apply(null, components);
+				components.push(id);
+				method.apply(data, components);
 				this.COMPONENTS.length = 0;
 			}
 		},
@@ -160,7 +160,7 @@ var Puppets = function (config)
 			{
 				if(!this.list[entity[puppy]].hasOwnProperty(component))
 				{
-					id = Puppets.Components.addComponent(entity, component, settings, enabled);
+					id = Puppets.Components.addComponent(entity[puppy], component, settings, enabled);
 					this.list[entity[puppy]][component] = id;
 				}
 				else
@@ -463,8 +463,8 @@ Puppets.prototype.find = function(clue, aplane)
 	var results = [];
 	if(aplane === undefined)
 		aplane = true;
-	if(!Array.isArray(clue))
-		clue = [clue];
+	
+	clue = clue.split(',');
 
 	var nb = clue.length;
     var puppy, puppo;
@@ -473,9 +473,12 @@ Puppets.prototype.find = function(clue, aplane)
 	{
 		if(clue[puppy].slice(0, 1) == ".")
 		{
-			results.push(this.Entities.collections[clue[puppy].slice(1)])
+			results.push(this.Entities.collections[clue[puppy].slice(1)]);
+			var tmp = [];
 			for(puppo in results[results.length-1])
-				results[results.length-1][puppo] = results[results.length-1][puppo];
+				tmp.push(results[results.length-1][puppo]);
+
+			results[results.length-1] = tmp;
 		}
 		else
 			results.push(this.Entities.find(clue[puppy]));
